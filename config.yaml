@@ -1,0 +1,25 @@
+app:
+  name: "web_ap"
+  mode: "dev"
+  port: 8080
+
+log:
+  level: "debug"
+  filename: "web_app.log"
+  max_size: 200
+  max_age: 30
+  max_backups: 3
+mysql:
+  host: "127.0.0.1"
+  port: 3306
+  user: "root"
+  password: "dyj3101631524"
+  db: "sqlx"
+  max_open_conns: 200
+  max_idle_conns: 50
+redis:
+  host: "127.0.0.1"
+  port: 6379
+  db: 0
+  password: ""
+  pool_size: 100

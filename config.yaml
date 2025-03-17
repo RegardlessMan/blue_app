@@ -1,7 +1,7 @@
-app:
-  name: "web_ap"
-  mode: "dev"
-  port: 8080
+name: "web_ap"
+mode: "dev"
+port: 8080
+
 
 log:
   level: "debug"

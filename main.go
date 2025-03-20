@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"go.uber.org/zap"
 	"log"
@@ -10,6 +11,7 @@ import (
 	"os/signal"
 	"syscall"
 	"time"
+	"web_app/controllers"
 	"web_app/dao/mysql"
 	"web_app/dao/redis"
 	"web_app/logger"
@@ -50,6 +52,11 @@ func main() {
 		return
 	}
 
+	// 初始化校验器使用到的翻译器
+	if err := controllers.InitTrans("zh"); err != nil {
+		fmt.Printf("controllers.InitTrans() failed,err:%v\n", err)
+	}
+
 	//5、注册路由
 	r := routes.Setup()
 	//6、启动服务（优雅关机）
@@ -60,7 +67,7 @@ func main() {
 
 	go func() {
 		// 开启一个goroutine启动服务
-		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+		if err := srv.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
 			log.Fatalf("listen: %s\n", err)
 		}
 	}()

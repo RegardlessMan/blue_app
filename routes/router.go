@@ -6,6 +6,7 @@ import (
 	"strconv"
 	"web_app/controllers"
 	"web_app/logger"
+	"web_app/middlewares"
 	"web_app/pkg/snowflake"
 )
 
@@ -13,7 +14,7 @@ func Setup() *gin.Engine {
 	r := gin.New()
 	r.Use(logger.GinLogger(), logger.GinRecovery(true))
 
-	r.GET("/", func(c *gin.Context) {
+	r.GET("/", middlewares.JWTAuthMiddleware(), func(c *gin.Context) {
 		id := snowflake.GenID()
 		c.String(http.StatusOK, strconv.FormatInt(id, 10))
 	})

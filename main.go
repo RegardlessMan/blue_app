@@ -8,6 +8,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"os/exec"
 	"os/signal"
 	"syscall"
 	"time"
@@ -21,6 +22,11 @@ import (
 )
 
 func main() {
+
+	_ = startDependency()
+	// 给 Redis 服务一些时间来完全启动
+	time.Sleep(5 * time.Second)
+
 	// 1、加载配置
 	if err := settings.Init(); err != nil {
 		fmt.Printf("settings.Init() failed,err:%v\n", err)
@@ -90,4 +96,29 @@ func main() {
 	}
 
 	zap.L().Fatal("Server exiting")
+}
+
+func startDependency() error {
+	// 相对路径到你的批处理文件
+	batPath := "start.bat"
+
+	// 获取当前工作目录
+	workingDir, err := os.Getwd()
+	if err != nil {
+		return fmt.Errorf("无法获取当前工作目录: %v", err)
+	}
+
+	// 构建完整的批处理文件路径
+	fullBatPath := workingDir + "\\" + batPath
+
+	// 使用 exec.Command 来执行批处理文件
+	cmd := exec.Command("cmd", "/c", fullBatPath)
+
+	// 启动批处理文件
+	err = cmd.Start()
+	if err != nil {
+		return fmt.Errorf("无法启动 Redis 服务: %v", err)
+	}
+
+	return nil
 }

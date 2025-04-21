@@ -3,6 +3,7 @@ package logic
 import (
 	"go.uber.org/zap"
 	"web_app/dao/mysql"
+	"web_app/dao/redis"
 	"web_app/models"
 	"web_app/pkg/snowflake"
 )
@@ -10,7 +11,9 @@ import (
 func CreatePost(p *models.Post) (err error) {
 	// 插入数据
 	p.ID = snowflake.GenID()
-	return mysql.CreatePost(p)
+	err = mysql.CreatePost(p)
+	redis.CreatePost(p.ID)
+	return
 }
 
 func GetPostDetail(pid int64) (detail *models.ApiPostDetail, err error) {

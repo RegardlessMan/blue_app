@@ -39,6 +39,22 @@ var (
 	ErrVoteTimeExpire = errors.New("投票时间已过")
 )
 
+func CreatePost(postId int64) (err error) {
+	pipeline := rdb.TxPipeline()
+	// 1、更新帖子的时间线
+	pipeline.ZAdd(getRedisKey(KeyPostTimeZSet), redis.Z{
+		Score:  float64(time.Now().Unix()),
+		Member: postId,
+	})
+	// 2、更新帖子的分数
+	pipeline.ZAdd(getRedisKey(KeyPostScoreZSet), redis.Z{
+		Score:  float64(time.Now().Unix()),
+		Member: postId,
+	})
+	_, err = pipeline.Exec()
+	return
+}
+
 func VoteForPost(userID, postID string, value float64) error {
 	// 1、判断投票限制
 	postTime := rdb.ZScore(getRedisKey(KeyPostTimeZSet), postID).Val()

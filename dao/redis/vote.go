@@ -4,6 +4,7 @@ import (
 	"errors"
 	"github.com/go-redis/redis"
 	"math"
+	"strconv"
 	"time"
 )
 
@@ -39,7 +40,7 @@ var (
 	ErrVoteTimeExpire = errors.New("投票时间已过")
 )
 
-func CreatePost(postId int64) (err error) {
+func CreatePost(postId, communityID int64) (err error) {
 	pipeline := rdb.TxPipeline()
 	// 1、更新帖子的时间线
 	pipeline.ZAdd(getRedisKey(KeyPostTimeZSet), redis.Z{
@@ -51,6 +52,9 @@ func CreatePost(postId int64) (err error) {
 		Score:  float64(time.Now().Unix()),
 		Member: postId,
 	})
+	// 更新：把帖子id加到社区的set
+	cKey := getRedisKey(KeyCommunitySetPF + strconv.Itoa(int(communityID)))
+	pipeline.SAdd(cKey, postId)
 	_, err = pipeline.Exec()
 	return
 }
@@ -84,4 +88,22 @@ func VoteForPost(userID, postID string, value float64) error {
 	}
 	_, err := pipeline.Exec()
 	return err
+}
+
+// GetPostVoteData 根据ids查询每篇帖子的投赞成票的数据
+func GetPostVoteData(ids []string) (data []int64, err error) {
+	pipeline := rdb.Pipeline()
+	for _, id := range ids {
+		key := getRedisKey(KeyPostVotedZSetPF + id)
+		pipeline.ZCount(key, "1", "1")
+	}
+	cmders, err := pipeline.Exec()
+	if err != nil {
+		return nil, err
+	}
+	for _, cmder := range cmders {
+		v := cmder.(*redis.IntCmd).Val()
+		data = append(data, v)
+	}
+	return
 }

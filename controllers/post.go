@@ -67,3 +67,27 @@ func GetPostListHandler(c *gin.Context) {
 	// 返回响应
 	ResponseSuccess(c, data)
 }
+
+// GetPostListHandler2 获取帖子列表的处理函数-新实现-可按社区按时间或分数排序查询帖子列表接口
+func GetPostListHandler2(c *gin.Context) {
+
+	p := models.ParamPostList{
+		Page:  1,
+		Size:  10,
+		Order: models.OrderTime,
+	}
+
+	if err := c.ShouldBindQuery(&p); err != nil {
+		zap.L().Error("GetPostListHandler2 c.ShouldBindQuery(&p) failed", zap.Error(err))
+		ResponseError(c, CodeInvalidParam)
+		return
+	}
+
+	data, err := logic.GetPostListNew(&p)
+	if err != nil {
+		zap.L().Error("logic.GetPostListNew(p) failed", zap.Error(err))
+		ResponseError(c, CodeServerBusy)
+		return
+	}
+	ResponseSuccess(c, data)
+}

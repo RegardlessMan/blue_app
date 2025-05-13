@@ -4,6 +4,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"strconv"
+	"time"
 	"web_app/controllers"
 	"web_app/logger"
 	"web_app/middlewares"
@@ -12,7 +13,7 @@ import (
 
 func Setup() *gin.Engine {
 	r := gin.New()
-	r.Use(logger.GinLogger(), logger.GinRecovery(true))
+	r.Use(logger.GinLogger(), logger.GinRecovery(true), middlewares.RateLimitMiddleware(2*time.Second, 1))
 	v1 := r.Group("/api/v1")
 
 	v1.GET("/", func(c *gin.Context) {
